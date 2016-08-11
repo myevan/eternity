@@ -9,3 +9,5 @@ add_custom_target(run
     DEPENDS HelloWorld
     WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
 )
+
+include_directories("${PROJECT_SOURCE_DIR}/../..")
