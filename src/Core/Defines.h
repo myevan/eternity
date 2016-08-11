@@ -1,5 +1,8 @@
 #pragma once
 
+#define EL_NAMESPACE()          namespace EL {
+#define EL_NAMESPACE_END()      }
+
 #define _EL_JSON_JOIN_1(_1) \
     JsonWriter().Begin().Add(#_1, _1).End()
 
