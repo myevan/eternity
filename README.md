@@ -1,4 +1,4 @@
-# evan
+# eternity library
 
 c++ game framework
 
