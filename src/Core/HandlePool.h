@@ -70,6 +70,8 @@ public:
         else
         {
             size_t freeIndex = m_freeIndices.front();
+            Node& freeNode = m_totalNodes[freeIndex];
+            freeNode.seq = newSeq;
             return NewHandle(freeIndex, newSeq);
         }
     }
