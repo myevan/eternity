@@ -3,7 +3,7 @@
 
 #include <Core/Defines.h>
 #include <Core/Types.h>
-#include <Core/JsonWriter.h>
+#include <Core/JsonString.h>
 #include <Core/EventTarget.h>
 #include <Core/HandlePool.h>
 #include <Core/Payload.h>
@@ -12,14 +12,11 @@ int main()
 {
     using namespace EL;
 
-    const char_t* a = "a";
-    const char_t* b = "b";
-    int_t x = 12345678;
-    puts(EL_JSON(a, b, x));
+    puts(JsonString(32).BeginDict().AddItem("a", 1).AddItem("b", 2).EndDict());
 
     EventTarget<int> OnNum;
-    OnNum.Bind([](int num) { 
-        puts(EL_JSON(num));
+    OnNum.Bind([](int num) {
+        puts(EL_JSON(num)); 
     });
     OnNum.Broadcast(99);
 
@@ -29,6 +26,8 @@ int main()
     payload.SetString("Hello");
     puts(payload.GetString().c_str());
     payloadPool.Free(h);
+
+
 
     return 0;
 }
