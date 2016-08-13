@@ -2,6 +2,10 @@
 
 EL_NAMESPACE()
 
+Payload::Payload()
+: m_fcc({0})
+{}
+
 bool Payload::SetBytes(fcc_t fcc, size_t size, const byte_t* bytes)
 {
 	if (0 < size)

@@ -14,6 +14,9 @@ private:
 	std::vector<byte_t> m_bytes;
 
 public:
+        Payload();
+
+public:
 	bool SetBytes(fcc_t fcc, size_t size, const byte_t* bytes);
 	bool SetString(const char_t* inValue);
 	bool SetString(str_t& inValue);
