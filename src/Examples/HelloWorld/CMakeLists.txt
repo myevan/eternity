@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(Examples)
 
+find_package(Boost COMPONENTS system)
+
 add_executable(HelloWorld Main.cpp)
 
 add_custom_target(run
@@ -11,7 +13,9 @@ add_custom_target(run
 )
 
 target_link_libraries(HelloWorld Core)
+target_link_libraries(HelloWorld ${Boost_LIBRARIES})
 
+include_directories("${Boost_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/../..")
 link_directories("${PROJECT_SOURCE_DIR}/../..")
 

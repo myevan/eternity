@@ -8,6 +8,8 @@
 #include <Core/HandlePool.h>
 #include <Core/Payload.h>
 
+#include <boost/asio.hpp>
+
 int main()
 {
     using namespace EL;
