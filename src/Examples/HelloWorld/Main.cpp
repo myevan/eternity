@@ -18,7 +18,7 @@ int main()
 
     EventTarget<int> OnNum;
     OnNum.Bind([](int num) {
-        puts(EL_JSON(num)); 
+        puts(EL_JSON_STR(num)); 
     });
     OnNum.Broadcast(99);
 
