@@ -6,6 +6,7 @@
 #include <Core/JsonWriter.h>
 #include <Core/EventTarget.h>
 #include <Core/HandlePool.h>
+#include <Core/Payload.h>
 
 int main()
 {
@@ -22,10 +23,12 @@ int main()
     });
     OnNum.Broadcast(99);
 
-    HandlePool<std::string> strPool;
-    handle_t h = strPool.Alloc();
-    auto& str = strPool.RefObject(h);
-    str = "hello";
-    strPool.Free(h);
+    HandlePool<Payload> payloadPool;
+    int_t h = payloadPool.Alloc();
+    auto& payload = payloadPool.RefObject(h);
+    payload.SetString("Hello");
+    puts(payload.GetString().c_str());
+    payloadPool.Free(h);
+
     return 0;
 }

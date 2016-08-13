@@ -36,7 +36,7 @@ public:
     {
         for (size_t i = 0; i != capacity; ++i)
         {
-            handle_t handle = Alloc();
+            int_t handle = Alloc();
             size_t index = GetQuickIndex(handle);
             m_freeIndices.push_back(index);
         }
@@ -52,7 +52,7 @@ public:
     }
 
 public:
-    handle_t Alloc()
+    int_t Alloc()
     {
         size_t newSeq = NewSequence();
 
@@ -74,7 +74,7 @@ public:
         }
     }
 
-    void Free(handle_t handle)
+    void Free(int_t handle)
     {
         size_t index = GetValidIndex(handle);
         EL_VERIFY_V(IsValidIndex(index), handle, index);
@@ -83,13 +83,13 @@ public:
     }
 
 public:
-    bool IsObject(handle_t handle)
+    bool IsObject(int_t handle)
     {
         T* ptr = GetObject(handle);
         return ptr != nullptr;
     }
 
-    T& RefObject(handle_t handle)
+    T& RefObject(int_t handle)
     {
         T* ptr = GetObject(handle);
         if (ptr == nullptr)
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    T* GetObject(handle_t handle)
+    T* GetObject(int_t handle)
     {
         size_t index = GetValidIndex(handle);
         Node& node = m_totalNodes[index];
@@ -110,7 +110,7 @@ public:
     }
 
 private:
-    size_t GetValidIndex(handle_t handle)
+    size_t GetValidIndex(int_t handle)
     {
         size_t size = m_totalNodes.size();
         size_t index = GetQuickIndex(handle);
@@ -140,17 +140,17 @@ protected:
         return s_seq++;
     }
 
-    virtual handle_t NewHandle(size_t index, size_t seq)
+    virtual int_t NewHandle(size_t index, size_t seq)
     {
-        return (handle_t)(index * 100) + (seq % 100);
+        return (int_t)(index * 100) + (seq % 100);
     }
 
-    virtual size_t GetQuickIndex(handle_t handle)
+    virtual size_t GetQuickIndex(int_t handle)
     {
         return handle / 100;
     }
 
-    virtual size_t GetQuickSequence(handle_t handle)
+    virtual size_t GetQuickSequence(int_t handle)
     {
         return handle % 100;
     }
