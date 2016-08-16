@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Defines.h"
-#include "Types.h"
+#include "Sequence32.h"
 
 #include <vector>
 #include <deque>
@@ -152,10 +151,8 @@ protected:
 
     virtual size_t NewSequence()
     {
-        static size_t s_seq = 1;
-        size_t ret = s_seq;
-        s_seq += 2;
-        return ret;
+        static Sequence32 s_seq;
+        return s_seq.Alloc();
     }
 
     virtual int NewHandle(size_t index, size_t seq)

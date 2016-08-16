@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Defines.h"
-#include "EventHandle.h"
+#include "Sequence32.h"
 
 #include <functional>
 #include <unordered_map>
@@ -16,7 +15,7 @@ public:
         typedef std::function<void(const T&)> Listener;
 
 private:        
-        std::unordered_map<EventHandle, Listener> m_singleListeners;
+        std::unordered_map<int, Listener> m_singleListeners;
         std::unordered_map<int, std::vector<Listener>> m_groupListeners;
 
 public:
@@ -27,22 +26,22 @@ public:
         }
 
 public:
-        EventHandle Bind(Listener&& inListener)
+        int Bind(Listener&& listener)
         {
-                EventHandle newHandle = AllocEventHandle();
-                m_singleListeners.emplace(std::make_pair(newHandle, std::move(inListener)));
-                return newHandle;
+                int handle = Sequence32::Get().Alloc();
+                m_singleListeners.emplace(std::make_pair(handle, std::move(listener)));
+                return handle;
         }
 
-        void Unbind(EventHandle inHandle)
+        void Unbind(int handle)
         {
-                m_singleListeners.erase(inHandle);
+                m_singleListeners.erase(handle);
         }
 
 public:
-        void BindGroup(int group, Listener&& inListener)
+        void BindGroup(int group, Listener&& listener)
         {
-                m_groupListeners[group].emplace(std::move(inListener));
+                m_groupListeners[group].emplace(std::move(listener));
         }
 
         void UnbindGroup(int group)
