@@ -1,3 +1,3 @@
 mkdir -p ./tmp/posix
 cd ./tmp/posix
-cmake ../.. 
+cmake ../.. -DCMAKE_BUILD_TYPE=Debug
