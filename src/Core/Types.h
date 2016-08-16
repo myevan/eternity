@@ -3,6 +3,7 @@
 #include "Defines.h"
 
 #include <string>
+#include <memory>
 
 #include <stdint.h>
 
