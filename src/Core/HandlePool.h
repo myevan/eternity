@@ -99,7 +99,7 @@ public:
     }
 
 public:
-    bool IsObject(int handle)
+    bool HasObject(int handle)
     {
         T* ptr = GetObject(handle);
         return ptr != nullptr;
