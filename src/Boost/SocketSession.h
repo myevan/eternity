@@ -28,6 +28,7 @@ public:
     {
         m_packetQueue = GetPacketQueuePool().Alloc(); 
         m_readingBuf = GetReadingBufferPool().Alloc();
+        m_readingBuf->Reserve(8 * 1024);
     }
 
     virtual ~SocketSession()
@@ -39,7 +40,6 @@ public:
     void Start()
     {
         auto& readingBuf = GetReadingBuffer();
-        readingBuf.Reserve(8 * 1024);
         Read();
     }
 

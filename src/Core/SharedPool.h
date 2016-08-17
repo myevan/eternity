@@ -61,6 +61,7 @@ public:
 
     void Free(const Object& freeObject)
     {
+        freeObject->Reset();
         assert(std::find(m_totalObjects.begin(), m_totalObjects.end(), freeObject) != m_totalObjects.end());
         m_freeObjects.push_back(freeObject);
     }

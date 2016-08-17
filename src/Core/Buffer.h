@@ -28,6 +28,11 @@ public:
         }
     }
 
+    void Reset()
+    {
+        m_size = 0;
+    }
+
     void Reserve(size_t capacity)
     {
         if (capacity <= m_capacity)

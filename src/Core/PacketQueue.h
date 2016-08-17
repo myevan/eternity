@@ -23,7 +23,6 @@ public:
             auto& pool = GetPacketPool();
             for (auto& packet: m_packets)
             {
-                packet->Reset();
                 pool.Free(packet);
             }
             m_packets.clear();
