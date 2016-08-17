@@ -8,9 +8,6 @@ EL_NAMESPACE()
 class PacketQueue
 {
 private:
-    typedef std::shared_ptr<Packet> PacketPtr;
-
-private:
     std::deque<PacketPtr> m_packets;
     
 public:
@@ -26,6 +23,7 @@ public:
             auto& pool = GetPacketPool();
             for (auto& packet: m_packets)
             {
+                packet->Reset();
                 pool.Free(packet);
             }
             m_packets.clear();

@@ -17,6 +17,12 @@ public:
     , m_bytes(nullptr)
     {}
 
+    void Reset()
+    {
+        m_size = 0;
+        m_bytes = nullptr;
+    }
+
     void Assign(size_t size, const byte_t* bytes)
     {
         m_size = size;
@@ -30,5 +36,7 @@ public:
     const byte_t* GetBytes() const
     { return m_bytes; }
 };
+
+typedef std::shared_ptr<Packet> PacketPtr;
 
 EL_NAMESPACE_END()
