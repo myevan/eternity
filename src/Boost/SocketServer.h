@@ -33,7 +33,9 @@ public:
 private:
     void AcceptSocket()
     {
-        m_acceptor.async_accept(m_socket, [this](const boost::system::error_code& error)
+        auto self(shared_from_this());
+
+        m_acceptor.async_accept(m_socket, [this, self](const boost::system::error_code& error)
         {
             auto& factory = GetFactory();
             auto session = factory.CreateSession(std::move(m_socket));
