@@ -16,7 +16,7 @@ using boost::asio::ip::tcp;
 class SocketSession : public std::enable_shared_from_this<SocketSession>
 {
 private:
-    Buffer m_readingBuf;
+    std::shared_ptr<Buffer> m_readingBuf;
     std::shared_ptr<PacketQueue> m_packetQueue;
 
 private:
@@ -26,16 +26,20 @@ public:
     SocketSession(tcp::socket socket)
     : m_socket(std::move(socket))
     {
-        m_packetQueue = std::make_shared<PacketQueue>(); 
-        m_readingBuf.Reserve(8 * 1024);
+        m_packetQueue = GetPacketQueuePool().Alloc(); 
+        m_readingBuf = GetReadingBufferPool().Alloc();
     }
 
     virtual ~SocketSession()
     {
+        GetReadingBufferPool().Free(m_readingBuf);
+        GetPacketQueuePool().Free(m_packetQueue);
     }
 
     void Start()
     {
+        auto& readingBuf = GetReadingBuffer();
+        readingBuf.Reserve(8 * 1024);
         Read();
     }
 
@@ -43,11 +47,12 @@ public:
     {
         auto self(shared_from_this());
 
-        int bufHandle;
-        auto& buf = AllocWritingBuffer(size, bytes, bufHandle);
-        boost::asio::async_write(m_socket, boost::asio::buffer(buf.GetBytes(), buf.GetSize()), [this, self, &bufHandle](const boost::system::error_code& error, size_t transferredSize)
+        auto writingBuf = GetWritingBufferPool().Alloc();
+        writingBuf->Assign(size, bytes);
+
+        boost::asio::async_write(m_socket, boost::asio::buffer(writingBuf->GetBytes(), writingBuf->GetSize()), [this, self, writingBuf](const boost::system::error_code& error, size_t transferredSize)
         {
-            FreeWritingBuffer(bufHandle);
+            GetWritingBufferPool().Free(writingBuf);
         });
     }
 
@@ -56,8 +61,9 @@ private:
     {
         auto self(shared_from_this());
 
-        auto slackSize = m_readingBuf.GetSlackSize();
-        auto* slackBytes = m_readingBuf.GetSlackBytes();
+        auto& readingBuf = GetReadingBuffer();
+        auto slackSize = readingBuf.GetSlackSize();
+        auto* slackBytes = readingBuf.GetSlackBytes();
         m_socket.async_read_some(boost::asio::buffer(slackBytes, slackSize), [this, self](const boost::system::error_code& error, size_t transferredSize)
         {
             if (error)
@@ -66,10 +72,11 @@ private:
             }
             else
             {
-                m_readingBuf.AddSize(transferredSize);
+                auto& readingBuf = GetReadingBuffer();
+                readingBuf.AddSize(transferredSize);
 
-                auto readingSize = m_readingBuf.GetSize();
-                auto* readingBytes = m_readingBuf.GetBytes();
+                auto readingSize = readingBuf.GetSize();
+                auto* readingBytes = readingBuf.GetBytes();
                 
                 auto& packetParser = GetPacketParser();
                 auto& packetQueue = GetPacketQueue();
@@ -82,7 +89,7 @@ private:
                     packetQueue.Pop();
                 }
 
-                m_readingBuf.RemoveHead(parsingSize);
+                readingBuf.RemoveHead(parsingSize);
 
                 Read();
             }
@@ -92,29 +99,16 @@ private:
 protected:
     void OnRead(size_t packetSize, const byte_t* packetBytes)
     {
-        if (0 < packetSize)
+        if (0 < packetSize && packetSize < 256)
         {
-            printf("read %d:%s", (int)packetSize, (const char*)packetBytes);
+            char buf[256 + 1];
+            memcpy(buf, packetBytes, packetSize);
+            buf[packetSize] = '\0';
+            printf("read %d:[%s]\n", (int)packetSize, buf);
         }
     }
 
 protected:
-    virtual Buffer& AllocWritingBuffer(size_t size, const byte_t* bytes, int& outHandle)
-    {
-        auto& pool = GetWritingBufferPool();
-        int handle = pool.Alloc();
-        auto& buf = pool.RefObject(handle);
-        buf.Assign(size, bytes);
-        outHandle = handle;
-        return buf;
-    }
-
-    virtual void FreeWritingBuffer(int handle)
-    {
-        auto& pool = GetWritingBufferPool();
-        pool.Free(handle);
-    }
-
     virtual PacketParser& GetPacketParser()
     {
         static TextPacketParser packetParser;
@@ -126,10 +120,27 @@ protected:
         return *m_packetQueue;
     }
 
-private:
-    static HandlePool<Buffer>& GetWritingBufferPool()
+    virtual Buffer& GetReadingBuffer()
     {
-        static HandlePool<Buffer> s_pool;
+        return *m_readingBuf;
+    }
+
+private:
+    static SharedPool<PacketQueue>& GetPacketQueuePool()
+    {
+        static SharedPool<PacketQueue> s_pool;
+        return s_pool;
+    }
+
+    static SharedPool<Buffer>& GetReadingBufferPool()
+    {
+        static SharedPool<Buffer> s_pool;
+        return s_pool;
+    }
+
+    static SharedPool<Buffer>& GetWritingBufferPool()
+    {
+        static SharedPool<Buffer> s_pool;
         return s_pool;
     }
 

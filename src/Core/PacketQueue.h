@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HandlePool.h"
+#include "SharedPool.h"
 #include "Packet.h"
 
 EL_NAMESPACE()
@@ -8,22 +8,36 @@ EL_NAMESPACE()
 class PacketQueue
 {
 private:
-    HandlePool<Packet> m_pool;
-    std::deque<int> m_packets;
+    typedef std::shared_ptr<Packet> PacketPtr;
+
+private:
+    std::deque<PacketPtr> m_packets;
     
 public:
+    virtual ~PacketQueue()
+    {
+        Reset();
+    }
+
     void Reset()
     {
-        m_pool.Reset();
-        m_packets.clear();
+        if (!m_packets.empty())
+        {
+            auto& pool = GetPacketPool();
+            for (auto& packet: m_packets)
+            {
+                pool.Free(packet);
+            }
+            m_packets.clear();
+        }
     }
 
     void Push(size_t size, const byte_t* bytes)
     {
-        int handle = m_pool.Alloc();
-        auto& packet = m_pool.RefObject(handle);
-        packet.Assign(size, bytes);
-        m_packets.push_back(handle);
+        auto& pool = GetPacketPool();
+        auto packet = pool.Alloc();
+        packet->Assign(size, bytes);
+        m_packets.push_back(packet);
     }
 
     bool Peek(size_t& outSize, const byte_t*& outBytes)
@@ -31,24 +45,33 @@ public:
         if (m_packets.empty())
             return false;
 
-        int handle = m_packets.front();
-        auto& packet = m_pool.RefObject(handle);
-        outSize = packet.GetSize();
-        outBytes = packet.GetBytes();
+        auto& packet = m_packets.front();
+        outSize = packet->GetSize();
+        outBytes = packet->GetBytes();
         return true;
     }
 
     void Pop()
     {
         assert(!m_packets.empty());
-        int handle = m_packets.front();
+        
+        auto packet = m_packets.front();
         m_packets.pop_front();
-        m_pool.Free(handle);
+
+        auto& pool = GetPacketPool();
+        pool.Free(packet);
     }
 
     bool IsEmpty()
     {
         return m_packets.empty();
+    }
+
+protected:
+    virtual SharedPool<Packet>& GetPacketPool()
+    {
+        static SharedPool<Packet> s_pool;
+        return s_pool;
     }
 };
 
