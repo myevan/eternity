@@ -2,7 +2,8 @@
 
 #include "Defines.h"
 #include "Types.h"
-#include "HandlePool.h"
+#include "Buffer.h"
+#include "SharedPool.h"
 
 #include <unordered_map>
 
@@ -35,11 +36,10 @@ EL_NAMESPACE()
 class JsonString
 {
 private:
-    int m_strHandle;
     size_t m_itemCount;
 
 private:
-    HandlePool<str_t>* m_pool;
+    std::shared_ptr<Buffer> m_buf;
 
 public:
     JsonString(size_t capacity);
@@ -61,9 +61,11 @@ private:
     void AddComma();
 
 private:
-    HandlePool<str_t>& GetPool();
+    Buffer& RefBuffer();
 
-    str_t& GetString();
+protected:
+    virtual SharedPool<Buffer>& RefPool();
+
 };
 
 EL_NAMESPACE_END()

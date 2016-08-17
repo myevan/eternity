@@ -53,17 +53,45 @@ public:
         m_bytes = newBytes;
     }
 
-    void Assign(size_t size, const byte_t* bytes)
+    bool Assign(size_t size, const byte_t* bytes)
     {
-        assert(size < m_capacity);
+        if (m_capacity < size)
+            return false;
+
         memcpy(m_bytes, bytes, size);
         m_size = size;
+        return true;
     }
 
-    void AddSize(size_t size)
+    bool Append(size_t size, const byte_t* bytes)
     {
-        assert(m_size + size < m_capacity);
+        if (m_capacity < m_size + size)
+            return false;
+
+        memcpy(m_bytes + m_size, bytes, size);
         m_size += size;
+        return true;
+    }
+
+    bool Append(size_t size, const char* chars)
+    {
+        if (m_capacity < m_size + size + 1)
+            return false;
+
+        memcpy(m_bytes + m_size, chars, size);
+        m_size += size;
+
+        m_bytes[m_size] = '\0';
+        return true;
+    }
+
+    bool AddSize(size_t size)
+    {
+        if (m_capacity < m_size + size)
+            return false;
+
+        m_size += size;
+        return true;
     }
 
     void RemoveHead(size_t size)

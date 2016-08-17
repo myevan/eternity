@@ -3,26 +3,17 @@
 EL_NAMESPACE()
 
 JsonString::JsonString(size_t capacity)
-: m_strHandle(0)
-, m_itemCount(0)
+: m_itemCount(0)
 {
-    static std::unordered_map<size_t, HandlePool<std::string>> s_poolDict;
-    m_pool = &s_poolDict[capacity];
-
-    auto& pool = GetPool();
-    m_strHandle = pool.Alloc();
-
-    auto& str = GetString();
-    str.reserve(capacity);
+    auto& pool = RefPool();
+    m_buf = pool.Alloc();
+    m_buf->Reserve(capacity);
 }
 
 JsonString::~JsonString()
 {
-    auto& str = GetString();
-    str = "";
-
-    auto& pool = GetPool();
-    pool.Free(m_strHandle);
+    auto& pool = RefPool();
+    pool.Free(m_buf);
 }
 
 JsonString& JsonString::BeginDict()
@@ -51,37 +42,39 @@ JsonString& JsonString::AddItem(const char* key, int value)
 
 JsonString::operator const char*()
 {
-    auto& str = GetString();
-    return str.c_str();
+    auto& buf = RefBuffer();
+    return (const char*)buf.GetBytes();
 }
 
 void JsonString::AddChar(char ch)
 {
-    auto& str = GetString();
-    str += ch;
+    auto& buf = RefBuffer();
+    buf.Append(1, &ch);
 }
 
 void JsonString::AddText(const char* text)
 {
-    auto& str = GetString();
-    str += '"';
-    str.append(text);
-    str += '"';
+    size_t textSize = strlen(text);
+
+    auto& buf = RefBuffer();
+    buf.Append(1, "\"");
+    buf.Append(textSize, text);
+    buf.Append(1, "\"");
 }
 
 void JsonString::AddInt(int num)
 {
-    auto& str = GetString();
+    auto& buf = RefBuffer();
 
-    char buf[32];
-    int numLen = snprintf(buf, sizeof(buf), "%d", num);
-    if (0 < numLen)
+    char text[32];
+    int textLen = snprintf(text, sizeof(text), "%d", num);
+    if (0 < textLen)
     {
-        str.append(buf, numLen);
+        buf.Append(textLen, text);
     }
     else
     {
-        str.append(buf, '0');
+        buf.Append(1, "?");
     }
 }
 
@@ -93,16 +86,15 @@ void JsonString::AddComma()
     }
 }
 
-HandlePool<str_t>& JsonString::GetPool()
+SharedPool<Buffer>& JsonString::RefPool()
 {
-    assert(m_pool != nullptr);
-    return *m_pool;
+    static SharedPool<Buffer> s_pool;
+    return s_pool;
 }
 
-str_t& JsonString::GetString()
+Buffer& JsonString::RefBuffer()
 {
-    auto& pool = GetPool();
-    return pool.RefObject(m_strHandle);
+    return *m_buf;
 }
 
 EL_NAMESPACE_END()
