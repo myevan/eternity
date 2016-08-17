@@ -14,7 +14,7 @@ int main()
     puts(JsonString(32).BeginDict().AddItem("a", 1).AddItem("b", 2).EndDict());
 
     EventTarget<int> OnNum;
-    OnNum.Bind([](int num) 
+    OnNum.AddListener([](int num) 
     {
         puts(EL_JSON_STR(num)); 
     });

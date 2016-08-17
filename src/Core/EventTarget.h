@@ -26,25 +26,25 @@ public:
         }
 
 public:
-        int Bind(Listener&& listener)
+        int AddListener(Listener&& listener)
         {
                 int handle = Sequence32::Get().Alloc();
                 m_singleListeners.emplace(std::make_pair(handle, std::move(listener)));
                 return handle;
         }
 
-        void Unbind(int handle)
+        void RemoveListener(int handle)
         {
                 m_singleListeners.erase(handle);
         }
 
 public:
-        void BindGroup(int group, Listener&& listener)
+        void AddGroupListener(int group, Listener&& listener)
         {
                 m_groupListeners[group].emplace(std::move(listener));
         }
 
-        void UnbindGroup(int group)
+        void RemoveGroupListener(int group)
         {
                 m_groupListeners.erase(group);
         }
